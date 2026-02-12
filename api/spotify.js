@@ -18,6 +18,11 @@ async function getAccessToken() {
   });
 
   const data = await response.json();
+
+  if (!data.access_token) {
+    throw new Error("Failed to get access token");
+  }
+
   return data.access_token;
 }
 
@@ -34,21 +39,33 @@ export default async function handler(req, res) {
       }
     );
 
-    if (response.status === 204 || response.status > 400) {
+    // Si Spotify no tiene device activo devuelve 204
+    if (response.status === 204) {
       return res.status(200).json({ playing: false });
     }
 
-    const song = await response.json();
+    if (!response.ok) {
+      return res.status(response.status).json({ error: "Spotify API error" });
+    }
+
+    const data = await response.json();
+
+    if (!data || !data.item) {
+      return res.status(200).json({ playing: false });
+    }
 
     return res.status(200).json({
-      playing: true,
-      title: song.item.name,
-      artist: song.item.artists.map(a => a.name).join(", "),
-      album: song.item.album.name,
-      cover: song.item.album.images[0].url,
-      url: song.item.external_urls.spotify,
+      playing: data.is_playing,
+      title: data.item.name,
+      artist: data.item.artists.map(a => a.name).join(", "),
+      album: data.item.album.name,
+      cover: data.item.album.images[0]?.url || null,
+      url: data.item.external_urls.spotify,
+      progress_ms: data.progress_ms,
+      duration_ms: data.item.duration_ms,
     });
+
   } catch (error) {
-    return res.status(500).json({ error: "Spotify error" });
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 }
