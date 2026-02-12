@@ -39,33 +39,17 @@ export default async function handler(req, res) {
       }
     );
 
-    // Si Spotify no tiene device activo devuelve 204
-    if (response.status === 204) {
-      return res.status(200).json({ playing: false });
-    }
-
-    if (!response.ok) {
-      return res.status(response.status).json({ error: "Spotify API error" });
-    }
-
-    const data = await response.json();
-
-    if (!data || !data.item) {
-      return res.status(200).json({ playing: false });
-    }
+    // 👇 IMPORTANTE: devolvemos respuesta cruda
+    const rawText = await response.text();
 
     return res.status(200).json({
-      playing: data.is_playing,
-      title: data.item.name,
-      artist: data.item.artists.map(a => a.name).join(", "),
-      album: data.item.album.name,
-      cover: data.item.album.images[0]?.url || null,
-      url: data.item.external_urls.spotify,
-      progress_ms: data.progress_ms,
-      duration_ms: data.item.duration_ms,
+      status: response.status,
+      raw: rawText
     });
 
   } catch (error) {
-    return res.status(500).json({ error: "Internal Server Error" });
+    return res.status(500).json({
+      error: error.message
+    });
   }
 }
