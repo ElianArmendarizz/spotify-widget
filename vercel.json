@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/spotify.js": {
+      "runtime": "nodejs18.x"
+    }
+  }
+}
