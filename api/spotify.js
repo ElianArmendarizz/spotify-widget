@@ -26,7 +26,7 @@ export default async function handler(req, res) {
     const access_token = await getAccessToken();
 
     const response = await fetch(
-      "https://api.spotify.com/v1/me/player/currently-playing",
+      "https://api.spotify.com/v1/me/player",
       {
         headers: {
           Authorization: `Bearer ${access_token}`,
